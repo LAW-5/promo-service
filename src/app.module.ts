@@ -11,6 +11,9 @@ import 'dotenv/config';
       url: process.env.DATABASE_URL,
       entities: [Promo],
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     PromoModule,
   ],

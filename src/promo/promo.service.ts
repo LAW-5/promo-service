@@ -1,5 +1,6 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Repository } from 'typeorm';
 import {
   CreatePromoDto,
@@ -20,6 +21,9 @@ export class PromoService {
   @InjectRepository(Promo)
   private readonly repository: Repository<Promo>;
 
+  @Inject(WINSTON_MODULE_PROVIDER)
+  private readonly logger: Logger;
+
   public async createPromo({
     merchantId,
     code,
@@ -35,6 +39,8 @@ export class PromoService {
     promo.maxUse = maxUse;
 
     await this.repository.save(promo);
+
+    this.logger.log('info', `creating promo with code ${code}`);
 
     return { status: HttpStatus.OK, error: null };
   }
@@ -63,11 +69,18 @@ export class PromoService {
       }),
     );
 
+    this.logger.log(
+      'info',
+      `listing all promo found ${response.data.length} row`,
+    );
+
     return response;
   }
 
   public async usePromo({ id }: UsePromoDto): Promise<UsePromoResponse> {
     let promo: Promo = await this.repository.findOne({ where: { id: id } });
+
+    this.logger.log('info', `using promo with id ${id}`);
 
     if (!promo) {
       return {
@@ -93,6 +106,8 @@ export class PromoService {
     id,
   }: DeletePromoDto): Promise<DeletePromoResponse> {
     let promo: Promo = await this.repository.findOne({ where: { id: id } });
+
+    this.logger.log('info', `delete promo with id`);
 
     if (!promo) {
       return {
